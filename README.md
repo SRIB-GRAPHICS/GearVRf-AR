@@ -24,15 +24,15 @@ The following code snippets need to be added in the above mentioned file.
 
 (ii) This code snippet builds a constructor for the GVRSceneObject in which we pass the flag for rendering the AR object and also we pass a flag indicating that we are in AR mode as this information is further needed for rendering.
 ```java
-	GVRMaterial material_ar;
+	GVRMaterial materialAr;
    	public GVRSceneObject(GVRContext gvrContext, GVRMesh mesh,
        GVRTexture texture, GVRMaterialShaderId shaderId, Boolean arObj, Boolean isAr){
         	this(gvrContext, mesh);
-    material_ar = new GVRMaterial(gvrContext, shaderId);
-    material_ar.setMainTexture(texture);
-    material_ar.setArObject(arObj, isAr);
-	material_ar.setAROffsets();
-    getRenderData().setMaterial(material_ar);
+    materialAr = new GVRMaterial(gvrContext, shaderId);
+    materialAr.setMainTexture(texture);
+    materialAr.setArObject(arObj, isAr);
+	materialAr.setAROffsets();
+    getRenderData().setMaterial(materialAr);
    	}
 
    	public GVRSceneObject(GVRContext gvrContext, GVRMesh mesh, 
@@ -44,11 +44,11 @@ The following code snippets need to be added in the above mentioned file.
 (iii) This code snippet add a function setMVPMatrix which will receive the modelviewprojection matrix for the rendering of the AR object on the marker and passes this matrix to the native side of framework for accurate rendering.
 ```java
     public void setMVPMatrix(float mvpmatrix[]) {
-        material_ar.setMVPmat(mvpmatrix);
+        materialAr.setMVPmat(mvpmatrix);
     }
     
     public void setMVMatrix(float mvmatrix[]) {
-        material_ar.setMVPmat(mvmatrix);
+        materialAr.setMVPmat(mvmatrix);
     }
 ```
 
@@ -57,10 +57,10 @@ The following code snippets need to be added in the above mentioned file.
 The following code snippets need to be added in the above mentioned file.
 ```java
 //add the following static variables
-public static float ar_offset_X;
-public static float ar_offset_Y;
-public static float ar_offset_W;
-public static float ar_offset_H;
+public static float arOffsetX;
+public static float arOffsetY;
+public static float arOffsetW;
+public static float arOffsetH;
 public void setArObject(Boolean arObj, Boolean ar) {
 	setArObj(MAIN_TEXTURE, arObj, ar);
 }
@@ -78,7 +78,7 @@ public void setMVmat(float MVmatrix[]) {
 }
 
 public void setAROffsets() {
-	setAROffsets(MAIN_TEXTURE, ar_offset_X, ar_offset_Y, ar_offset_W, ar_offset_H);
+	setAROffsets(MAIN_TEXTURE, arOffsetX, arOffsetY, arOffsetW, arOffsetH);
 }
 //---------------
 public void setArObj(String key, Boolean arObj, Boolean ar) {
@@ -146,28 +146,28 @@ The following code snippets need to be added in the above mentioned file.
 (i) Passing the flag for AR object and AR mode.
 ```cpp
 JNIEXPORT void JNICALL Java_org_gearvrf_NativeMaterial_setArObj(JNIEnv * env,
-	jobject obj,jlong jmaterial, jstring key, jboolean arObj, jboolean isAR);
+	jobject obj,jlong jmaterial, jstring key, jboolean ar_Obj, jboolean is_AR);
 
 JNIEXPORT void JNICALL Java_org_gearvrf_NativeMaterial_ setArObj(JNIEnv * env,
-	jobject obj, jlong jmaterial,jstring key, jboolean arObj, jboolean isAR) {
+	jobject obj, jlong jmaterial,jstring key, jboolean ar_Obj, jboolean is_AR) {
 	Material* material = reinterpret_cast<Material*>(jmaterial);
 	const char* char_key = env->GetStringUTFChars(key, 0);
 	std::string native_key = std::string(char_key);
-	material->setObjectAR(native_key, arObj, isAR);
+	material->setObjectAR(native_key, ar_Obj, is_AR);
 }
 ```
 
 (ii) Passing a flag indicating that we need to render in AR mode.
 ```cpp
 JNIEXPORT void JNICALL Java_org_gearvrf_NativeMaterial_setAR(JNIEnv * env,
-	jobject obj,jlong jmaterial, jstring key, jboolean isAR);
+	jobject obj,jlong jmaterial, jstring key, jboolean is_AR);
 
  JNIEXPORT void JNICALL Java_org_gearvrf_NativeMaterial_setAR(JNIEnv * env,
-	jobject obj,jlong jmaterial, jstring key, jboolean isAR) {
+	jobject obj,jlong jmaterial, jstring key, jboolean is_AR) {
 	Material* material = reinterpret_cast<Material*>(jmaterial);
 	const char* char_key = env->GetStringUTFChars(key, 0);
 	std::string native_key = std::string(char_key);
-	material->setAR(native_key, isAR);
+	material->setAR(native_key, is_AR);
 	env->ReleaseStringUTFChars(key, char_key);
 }
 ```
@@ -226,37 +226,38 @@ jobject obj,jlong jmaterial, jstring key, jfloat ar_offset_X, jfloat ar_offset_Y
 (i)	Add the following variables:
 ```cpp
 public:
-bool isAR_=false;
-bool isARobj_=false; 
-float arOffX_=0.0f, arOffY_=0.0f, arOffWidth_=0.0f, arOffHeight_=0.0f;
-glm::mat4 mvpMatrix;
-glm::mat4 mvMatrix;
+    bool is_ar_ = false;
+    bool is_ar_obj_ = false;
+    float ar_offset_x_ = 0.0f, ar_offset_y_ = 0.0f, ar_offset_width_ = 0.0f,
+            ar_offset_height_ = 0.0f;
+    glm::mat4 mvp_matrix;
+    glm::mat4 mv_matrix;
 ```
 
 (ii) Add the following functions:
 ```cpp
-void setObjectAR(std::string key, bool arObj, bool ar) {
-	isAR_=ar;
-	isARobj=arObj;
+void setObjectAR(std::string key, bool ar_Obj, bool ar) {
+	is_ar_ = ar;
+	is_ar_obj_ = ar_Obj;
 }
 
 void setAR(std::string key, bool ar) {
-	isAR_=ar;
+	is_ar_ = ar;
 }
 
 void setMVPmatrix(std::string key, glm::mat4 mat) {
-	mvpMatrix = mat;
+	mvp_matrix = mat;
 }
 
 void setMVmatrix(std::string key, glm::mat4 mat) {
-	mvMatrix = mat;
+	mv_matrix = mat;
 }
 
 void setAROffsets(std::string key, float ar_offset_X, float ar_offset_Y, float ar_offset_W, float ar_offset_H) {
-        arOffsetX_ = ar_offset_X;
-        arOffsetY_ = ar_offset_Y;
-        arOffsetWidth_ = ar_offset_W;
-        arOffsetHeight_ = ar_offset_H;
+	ar_offset_x_ = ar_offset_X;
+	ar_offset_y_ = ar_offset_Y;
+	ar_offset_width_ = ar_offset_W;
+	ar_offset_height_ = ar_offset_H;
 }
 ```
 
@@ -264,8 +265,9 @@ void setAROffsets(std::string key, float ar_offset_X, float ar_offset_Y, float a
 -----------------------------------------------------------
 (i)	Add the following variables:
 ```cpp
-bool setIsAr;
-float MVmatrix[16];
+bool set_is_ar, set_isAr_object;
+glm::mat4 MVP_matrix;
+glm::mat4 MV_matrix;
 float ar_offset_X, ar_offset_Y, ar_offset_W, ar_offset_H;
 ```
 
@@ -287,18 +289,19 @@ We are changing the viewport parameters for the AR mode so as to have a see thro
 ```cpp
 void Renderer::renderRenderData(…)
 {
-	if (render_data->pass(0)->material()->isAR_) {
-			setIsAr = true;
-			ar_offset_X = render_data->pass(0)->material()->arOffX_;
-			ar_offset_Y = render_data->pass(0)->material()->arOffY_;
-			ar_offset_W = render_data->pass(0)->material()->arOffWidth_;
-			ar_offset_H = render_data->pass(0)->material()->arOffHeight_;
-			MVPmatrix = render_data->pass(0)->material()->mvpMatrix;
-			MVmatrix = render_data->pass(0)->material()->mvMatrix;
+    if (render_data->pass(0)->material()->is_ar_) {
+        set_is_ar = true;
+        set_isAr_object = render_data->pass(0)->material()->is_ar_obj_;
+        ar_offset_X = render_data->pass(0)->material()->ar_offset_x_;
+        ar_offset_Y = render_data->pass(0)->material()->ar_offset_y_;
+        ar_offset_W = render_data->pass(0)->material()->ar_offset_width_;
+        ar_offset_H = render_data->pass(0)->material()->ar_offset_height_;
+        MVP_matrix = render_data->pass(0)->material()->mvp_matrix;
+        MV_matrix = render_data->pass(0)->material()->mv_matrix;
     }
-    setIsArObj = render_data->pass(0)->material()->isARobj_;
-    MVPmatrix = render_data->pass(0)->material()->mvpMatrix;
-    MVmatrix = render_data->pass(0)->material()->mvMatrix;
+    set_isAr_object = render_data->pass(0)->material()->is_ar_obj_;
+    MVP_matrix = render_data->pass(0)->material()->mvp_matrix;
+    MV_matrix = render_data->pass(0)->material()->mv_matrix;
 
 //further lines of code
 //………
@@ -311,7 +314,7 @@ try{
 		  if(render_data->material()->isAR && render_data->material()->isARobj) {
 				/* We will pass the mvp matrix which we received from the AR tracking so as to render the AR object perfectly on the position of the marker in the real world. */
 				// ---------------------------------------------AR------------------------{
-				if (setIsAr && setIsArObj) {
+				if (set_is_ar && set_isAr_object) {
 					shader_manager->getTextureShader()->render(
 					MVmatrix,
 					glm::inverseTranspose(MVmatrix),
@@ -333,6 +336,14 @@ try{
 
 8.	Framework -> org.gearvrf -> GVRXMLParser.java
 --------------------------------------------------
+The following variables will be added
+```cpp
+    private float mAr_offsetX = 0.0f;
+    private float mAr_offsetY = 0.0f;
+    private float mAr_offsetWidth = 0.0f;
+    private float mAr_offsetHeight = 0.0f;
+```
+
 The following code snippet needs to be added to get the offset values to the set the viewport in the AR mode.
 ```cpp
 GVRXMLParser(AssetManager assets, String fileName) {
@@ -393,10 +404,10 @@ GVRViewManager(GVRActivity gvrActivity, GVRScript gvrScript,
 	y=xmlParser.getAROffsetY();
 	w=xmlParser.getAROffsetWidth();
 	h=xmlParser.getAROffHeight();
-	GVRMaterial.ar_offset_X=x;
-	GVRMaterial.ar_offset_Y=y;
-	GVRMaterial.ar_offset_W=w;
-	GVRMaterial.ar_offset_H=h;
+	GVRMaterial.arOffsetX=x;
+	GVRMaterial.arOffsetY=y;
+	GVRMaterial.arOffsetW=w;
+	GVRMaterial.arOffsetH=h;
 ```
 
 10.	OurArApplication -> assets -> gvr_note4.xml
